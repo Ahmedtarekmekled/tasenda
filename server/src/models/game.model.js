@@ -20,7 +20,7 @@ const gameSchema = new Schema({
   gameType: {
     type: String,
     required: true,
-    enum: ['word-guess', 'trivia', 'tic-tac-toe']
+    enum: ['word-guess', 'trivia', 'tic-tac-toe', 'question-guess']
   },
   players: [{
     user: {
@@ -61,8 +61,48 @@ const gameSchema = new Schema({
     default: null
   },
   gameState: {
-    type: Schema.Types.Mixed,
-    default: {}
+    board: {
+      type: [String],
+      default: Array(9).fill('')
+    },
+    phase: {
+      type: String,
+      enum: ['waiting', 'playing', 'completed'],
+      default: 'waiting'
+    },
+    currentPlayerIndex: {
+      type: Number,
+      default: 0
+    },
+    currentPlayer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    winner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    isDraw: {
+      type: Boolean,
+      default: false
+    },
+    moveHistory: {
+      type: [{
+        player: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User'
+        },
+        position: Number,
+        symbol: String,
+        timestamp: Date
+      }],
+      default: []
+    },
+    scores: {
+      type: Object,
+      default: {}
+    }
   },
   settings: {
     type: Schema.Types.Mixed,

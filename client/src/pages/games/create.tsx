@@ -7,7 +7,7 @@ import Button from '../../components/common/Button';
 import InputField from '../../components/common/InputField';
 import { createGame } from '../../services/game.service';
 import toast from 'react-hot-toast';
-import { FaGamepad, FaChess, FaRegLightbulb, FaDice } from 'react-icons/fa';
+import { FaGamepad, FaChess, FaRegLightbulb, FaDice, FaQuestion } from 'react-icons/fa';
 
 const CreateGame = () => {
   const { user, token } = useAuth();
@@ -17,6 +17,9 @@ const CreateGame = () => {
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [gameType, setGameType] = useState('word-guess');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [gameSettings, setGameSettings] = useState({
+    rounds: 5,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,14 +42,16 @@ const CreateGame = () => {
         title,
         description,
         gameType,
-        maxPlayers
+        maxPlayers,
+        gameSettings
       });
       
       const response = await createGame({
         title,
         description,
         gameType,
-        maxPlayers
+        maxPlayers,
+        gameSettings
       }, token as string);
       
       if (response.success && response.data) {
@@ -81,8 +86,47 @@ const CreateGame = () => {
       name: 'Trivia',
       icon: <FaGamepad className="text-green-500" />,
       description: 'Test your knowledge with fun trivia questions.'
+    },
+    {
+      id: 'question-guess',
+      name: 'Question Guess',
+      icon: <FaQuestion className="text-purple-500" />,
+      description: 'Guess a secret word by asking yes/no questions and using deduction.'
     }
   ];
+
+  const renderGameSpecificSettings = () => {
+    switch (gameType) {
+      case 'question-guess':
+        return (
+          <div className="mt-4 p-4 bg-gray-50 rounded-md">
+            <h3 className="text-lg font-medium mb-3">Question Guess Settings</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Number of Rounds
+              </label>
+              <select
+                value={gameSettings.rounds || 5}
+                onChange={(e) => setGameSettings({
+                  ...gameSettings,
+                  rounds: parseInt(e.target.value)
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+              >
+                {[3, 5, 7, 10].map(num => (
+                  <option key={num} value={num}>{num} rounds</option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Each player will get to be the word selector and guesser in alternating rounds.
+              </p>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <ProtectedRoute>
@@ -173,6 +217,8 @@ const CreateGame = () => {
                 ))}
               </div>
             </div>
+            
+            {renderGameSpecificSettings()}
             
             <div className="flex justify-end">
               <Button

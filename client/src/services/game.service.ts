@@ -81,21 +81,18 @@ interface CreateGameData {
 }
 
 // Create a new game
-export const createGame = async (gameData: CreateGameData, token: string) => {
+export const createGame = async (gameData: GameData, token: string): Promise<GameResponse> => {
   try {
-    // Validate game type before sending request
-    const validGameTypes = ['word-guess', 'trivia', 'tic-tac-toe'];
+    // Validate game type
+    const validGameTypes = ['word-guess', 'trivia', 'tic-tac-toe', 'question-guess'];
     if (!validGameTypes.includes(gameData.gameType)) {
-      console.error('Invalid game type:', gameData.gameType);
+      console.error(`Invalid game type: ${gameData.gameType}. Valid types are: ${validGameTypes.join(', ')}`);
       return {
         success: false,
-        data: null,
-        message: `Invalid game type: ${gameData.gameType}. Valid types are: ${validGameTypes.join(', ')}`
+        message: `Invalid game type: ${gameData.gameType}`
       };
     }
-    
-    console.log('Creating game with data:', gameData);
-    
+
     const response = await axios.post(`${API_URL}/games`, gameData, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -103,20 +100,16 @@ export const createGame = async (gameData: CreateGameData, token: string) => {
       }
     });
     
-    console.log('Game creation response:', response.data);
-    
     return {
       success: true,
       data: response.data,
       message: 'Game created successfully'
     };
   } catch (error: any) {
-    console.error('Error creating game:', error);
-    console.error('Error details:', error.response?.data);
+    console.error('Error creating game:', error.response?.data || error);
     
     return {
       success: false,
-      data: null,
       message: error.response?.data?.message || 'Failed to create game'
     };
   }
@@ -284,6 +277,35 @@ export const updateGameStatus = async (gameId: string, status: string, token: st
       success: false,
       data: null,
       message: error.response?.data?.message || 'Failed to update game status'
+    };
+  }
+};
+
+// Add a function to fix a stuck game
+export const fixGame = async (gameId: string, token: string) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/games/${gameId}/fix`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    
+    return {
+      success: true,
+      data: response.data,
+      message: 'Game fixed successfully'
+    };
+  } catch (error: any) {
+    console.error('Error fixing game:', error.response?.data || error);
+    
+    return {
+      success: false,
+      data: null,
+      message: error.response?.data?.message || 'Failed to fix game'
     };
   }
 };

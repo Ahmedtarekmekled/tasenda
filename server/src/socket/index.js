@@ -1,85 +1,56 @@
-const socketIo = require('socket.io');
-const jwt = require('jsonwebtoken');
-const { verifyToken } = require('../utils/auth');
-const Game = require('../models/game.model');
-const { handleGameAction } = require('./gameHandlers');
+const socketIO = require("socket.io");
+const jwt = require("jsonwebtoken");
 
-const setupSocket = (server) => {
-  const io = socketIo(server, {
+let io;
+
+const initializeSocket = (server) => {
+  io = socketIO(server, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:3000',
-      methods: ['GET', 'POST'],
-      credentials: true
-    }
+      origin: process.env.CLIENT_URL || "http://localhost:3000",
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
   });
 
-  // Authentication middleware
+  // Middleware for authentication
   io.use((socket, next) => {
     const token = socket.handshake.auth.token;
-    
+
     if (!token) {
-      return next(new Error('Authentication error: No token provided'));
+      return next(new Error("Authentication error: Token required"));
     }
 
     try {
-      const decoded = verifyToken(token);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      socket.userId = decoded.id;
       socket.user = { id: decoded.id, name: decoded.name };
       next();
-    } catch (err) {
-      return next(new Error('Authentication error: Invalid token'));
+    } catch (error) {
+      return next(new Error("Authentication error: Invalid token"));
     }
   });
 
-  // Handle connections
-  io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.user.id}`);
+  // Store the io instance for external use
+  module.exports.io = io;
 
-    // Join a game room
-    socket.on('join-game', async (data) => {
-      const { gameId } = data;
-      
-      try {
-        // Join the socket room for this game
-        socket.join(`game:${gameId}`);
-        console.log(`User ${socket.user.id} joined game room: ${gameId}`);
-        
-        // Notify other players
-        socket.to(`game:${gameId}`).emit('player-joined', {
-          id: socket.user.id,
-          name: socket.user.name
-        });
-      } catch (err) {
-        console.error('Error joining game room:', err);
-        socket.emit('error', { message: 'Failed to join game room' });
-      }
-    });
+  // After exporting io, import the handlers to avoid circular dependency
+  const registerHandlers = require("./handlers");
 
-    // Leave a game room
-    socket.on('leave-game', (data) => {
-      const { gameId } = data;
-      
-      socket.leave(`game:${gameId}`);
-      console.log(`User ${socket.user.id} left game room: ${gameId}`);
-      
-      // Notify other players
-      socket.to(`game:${gameId}`).emit('player-left', {
-        id: socket.user.id,
-        name: socket.user.name
-      });
-    });
+  io.on("connection", (socket) => {
+    console.log(`User connected: ${socket.userId}`);
 
-    // Handle game actions
-    socket.on('game-action', (data) => {
-      handleGameAction(io, socket, data);
-    });
+    // Register all socket event handlers
+    registerHandlers(io, socket);
 
-    // Handle disconnection
-    socket.on('disconnect', () => {
-      console.log(`User disconnected: ${socket.user.id}`);
+    socket.on("disconnect", () => {
+      console.log(`User disconnected: ${socket.userId}`);
     });
   });
 
   return io;
 };
 
-module.exports = setupSocket; 
+module.exports = {
+  initializeSocket,
+  io: null, // This will be populated after initialization
+};

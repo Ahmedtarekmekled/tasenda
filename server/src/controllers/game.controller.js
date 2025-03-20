@@ -31,7 +31,7 @@ const createGame = async (req, res) => {
     }
 
     // Validate game type
-    const validGameTypes = ['word-guess', 'trivia', 'tic-tac-toe'];
+    const validGameTypes = ['word-guess', 'trivia', 'tic-tac-toe', 'question-guess'];
     if (!validGameTypes.includes(gameType)) {
       console.error(`Invalid game type: ${gameType}. Valid types are: ${validGameTypes.join(', ')}`);
       return res.status(400).json({ 
@@ -65,7 +65,7 @@ const createGame = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating game:', error);
-    res.status(500).json({ message: 'Server error: ' + error.message });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
