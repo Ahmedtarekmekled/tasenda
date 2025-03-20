@@ -1,30 +1,33 @@
 const express = require('express');
 const router = express.Router();
-// const gameController = require('../controllers/game.controller');
-// const { authenticate } = require('../middleware/auth.middleware');
-
-// Get all games
-router.get('/', (req, res) => {
-  // Placeholder for games list logic
-  res.status(200).json({ message: 'Get all games endpoint' });
-});
-
-// Get a specific game
-router.get('/:id', (req, res) => {
-  // Placeholder for game details logic
-  res.status(200).json({ message: `Get game ${req.params.id} endpoint` });
-});
+const gameController = require('../controllers/game.controller');
+const { authenticate } = require('../middleware/auth');
+const { validateGameCreation } = require('../middleware/validation.middleware');
 
 // Create a new game
-router.post('/', (req, res) => {
-  // Placeholder for game creation logic
-  res.status(201).json({ message: 'Create game endpoint' });
-});
+router.post('/', authenticate, gameController.createGame);
 
-// Join a game
-router.post('/:id/join', (req, res) => {
-  // Placeholder for game joining logic
-  res.status(200).json({ message: `Join game ${req.params.id} endpoint` });
+// Get all games for the current user
+router.get('/', authenticate, gameController.getUserGames);
+
+// Get game info by invite code (public)
+router.get('/invite/:inviteCode', gameController.getGameByInviteCode);
+
+// Join a game by invite code
+router.post('/join/:inviteCode', authenticate, gameController.joinGameByInviteCode);
+
+// Get a game by ID
+router.get('/:id', authenticate, gameController.getGameById);
+
+// Update game status
+router.patch('/:id/status', authenticate, gameController.updateGameStatus);
+
+// Leave a game
+router.post('/:id/leave', authenticate, gameController.leaveGame);
+
+// Add a test endpoint to your game routes
+router.get('/test', (req, res) => {
+  res.json({ message: 'Game routes test endpoint is working' });
 });
 
 module.exports = router; 

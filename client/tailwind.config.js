@@ -1,9 +1,26 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/pages/**/*.{js,ts,jsx,tsx}',
+    './src/components/**/*.{js,ts,jsx,tsx}',
+  ],
+  safelist: [
+    'bg-primary-50',
+    'bg-primary-100',
+    'bg-primary-500',
+    'bg-primary-600',
+    'bg-primary-700',
+    'bg-primary-800',
+    'text-primary-500',
+    'text-primary-600',
+    'text-primary-700',
+    'text-primary-800',
+    'border-primary-500',
+    'border-primary-600',
+    'hover:bg-primary-50',
+    'hover:bg-primary-700',
+    'hover:text-primary-600',
+    'focus:ring-primary-500',
   ],
   theme: {
     extend: {
@@ -22,8 +39,17 @@ module.exports = {
           950: '#082f49',
         },
         secondary: {
-          // Add your secondary color palette here
-          500: '#8b5cf6', // Example: purple
+          50: '#f5f3ff',
+          100: '#ede9fe',
+          200: '#ddd6fe',
+          300: '#c4b5fd',
+          400: '#a78bfa',
+          500: '#8b5cf6',
+          600: '#7c3aed',
+          700: '#6d28d9',
+          800: '#5b21b6',
+          900: '#4c1d95',
+          950: '#2e1065',
         },
       },
       fontFamily: {
